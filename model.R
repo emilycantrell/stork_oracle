@@ -11,7 +11,7 @@ groundhog.library(pkgs, groundhog.day)
 
 # Read in feature data
 persoontab <- read_csv('~/Documents/GitHub/prefer_prepare/synth/data/raw/persoon_tab.csv', col_types = cols(.default = "c")) # read everything as character due to missingness codes
-features <- persoontab # later, "features" will contain persoontab data merged with other feature data
+householdbus <- read_csv('~/Documents/GitHub/prefer_prepare/synth/data/raw/household_bus.csv', col_types = cols(.default = "c")) # read everything as character due to missingness codes
 
 # Read in outcome file
 outcome <- read_csv('~/Documents/GitHub/prefer_prepare/synth/data/raw/outcome.csv')
@@ -19,7 +19,37 @@ outcome <- read_csv('~/Documents/GitHub/prefer_prepare/synth/data/raw/outcome.cs
 # Read in data splits
 data_splits <- read_csv('~/Documents/GitHub/prefer_megateam_shared/data_splits/synthetic_rinpersoon_fold_assignments.csv')
 
-#### APPLY DATA SPLITS ####
+#### DATA PREP & FEATURE ENGINEERING ####
+
+# Function to change missingness symbols to NA
+change_missingness_symbols_to_NA <- function(df) {
+  df <- df %>%
+    mutate_all(~ na_if(., "-")) %>%
+    mutate_all(~ na_if(., "--"))
+  }
+
+persoontab <- change_missingness_symbols_to_NA(persoontab)
+householdbus <- change_missingness_symbols_to_NA(householdbus)
+
+# Create household ID for householdbus
+householdbus <- householdbus %>%
+  mutate(household_id = paste0(HOUSEKEEPING_NR, "_", DATE_STIRTHH)) %>%
+  select(-HOUSEKEEPING_NR)
+
+# Filter householdbus to only the most recent household per person
+most_recent_household <- householdbus %>%
+  group_by(rinpersoon) %>%
+  arrange(desc(DATE_STIRTHH)) %>% 
+  slice_head()
+
+# Merge feature data files
+features <- full_join(persoontab, 
+                      most_recent_household, 
+                      by = "rinpersoon")
+
+# TODO: Utilize data from previous households in householdbus via feature engineering
+
+#### DATA SPLITS ####
 
 # Specify which folds to use (we will use the same folds as the books-of-life team when comparing results)
 train_folds <- c(0:3)
@@ -45,44 +75,42 @@ features_test <- features %>%
 outcome_test <- outcome %>%
   filter(rinpersoon %in% test_rinpersoons)
   
-#### DATA PREPARATION #### 
+#### DMATRIX PREPARATION #### 
 
-### Determine which variables are continuous vs. categorical ###
-
-# Identify date columns (these are continuous)
-date_column_names <- grep("jaar|year|maand|month|dag|day", colnames(features), ignore.case = TRUE, value = TRUE)
+# Identify date columns (these are continuous but require special treatment)
+date_column_names <- c("DATE_STIRTHH", "DATUMEINDEHH") # these are in date format (e.g., 2024-06-18)
 
 # Identify continuous variables
-# When we add more feature files, we will add other types of columns that should be continuous
-continuous_variables <- date_column_names
+year_month_day_column_names <- grep("jaar|year|maand|month|dag|day", colnames(features), ignore.case = TRUE, value = TRUE)
+columns_with_number_in_name <- grep("aantal|number", colnames(features), ignore.case = TRUE, value = TRUE)
+other_numeric_columns <- c("BIRTHEDYOUNGCHILDHH", "GBAGENERATIE") 
+continuous_variables <- c(year_month_day_column_names, columns_with_number_in_name, other_numeric_columns)
+
+# TODO: Check with codebook/Mark about meaning of GBAGENERATIE. I think this means immigrant generation (i.e., first-gen, second-gen)
 
 # All variables that we do not identify as continuous will be considered categorical (this includes binary)
 categorical_variables <- features_train %>% 
-  select(-all_of(c("rinpersoon", continuous_variables))) %>% 
+  select(-all_of(c("rinpersoon", "household_id", date_column_names, continuous_variables))) %>% 
   names()
 
-### Create functions for data prep ###
-
-# Create data cleaning function
-data_cleaning <- function(feature_data) { 
-  # Change missingness symbol to NA
-  feature_data <- feature_data %>%
-    mutate_all(~ na_if(., "-"))
-  # Change variables to the correct data type
+# Create function to change data type
+change_data_type <- function(feature_data) { 
   feature_data <- feature_data %>%
     mutate(across(all_of(continuous_variables), as.numeric)) %>%
-    # Convert categoricals variables to factor, then numeric (cannot go straight to numeric)
+    # Convert strings that represent dates to date-type, then numeric (cannot go straight to numeric)
+    mutate(across(all_of(date_column_names), ~ as.numeric(as.Date(.))))%>%
+    # Convert categorical variables to factor, then numeric (cannot go straight to numeric)
     mutate(across(all_of(categorical_variables), ~ as.numeric(as.factor(.))))
   }
 
 # Create function that generates dmatrix
 generate_dmatrix <- function(feature_data, outcome) { 
-  cleaned_feature_data <- data_cleaning(feature_data)
+  cleaned_feature_data <- change_data_type(feature_data)
   # Merge feature data with outcome data to ensure rows are in the same order
   features_and_outcome <- full_join(cleaned_feature_data, outcome, by = join_by(rinpersoon))
   # Remove outcome and id number from feature matrix
   features_for_dmatrix <- features_and_outcome %>%
-    select(-all_of(c("rinpersoon", "outcome")))
+    select(-all_of(c("rinpersoon", "household_id", "outcome")))
   outcome_for_dmatrix <- features_and_outcome %>%
     pull(outcome)
   # Generate dmatrix

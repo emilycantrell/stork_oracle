@@ -127,6 +127,38 @@ our_model <- xgboost(data = dmatrix_train, nrounds = 100, objective = "binary:lo
 
 # TODO: Add hyperparameter tuning
 
+model_to_tune <- boost_tree(
+  mode = "classification",
+  mtry = tune(), trees = tune(), tree_depth = tune(), learn_rate = tune()
+) %>%
+  set_engine("xgboost", counts = FALSE)
+folds <- vfold_cv(model_df, v = 5)
+grid <- expand.grid(
+  mtry = c(.05, .1, .15, .2, .25, .3, .35, .4),
+  trees = c(10, 50, 100, 300, 600, 900, 1200),
+  tree_depth = 3:7,
+  learn_rate = c(.1, .3, .5, .7, .9, 1.1)
+)
+best <- tune_grid(model_to_tune, recipe, folds,
+                  grid = grid,
+                  metrics =
+                    metric_set(metric_tweak("f_meas", f_meas, event_level = "second"))
+) %>%
+  collect_metrics() %>%
+  filter(n == 5) %>%
+  arrange(desc(mean)) %>%
+  head(1)
+model <- boost_tree(
+  mode = "classification",
+  mtry = best$mtry,
+  trees = best$trees,
+  tree_depth = best$tree_depth,
+  learn_rate = best$learn_rate
+) %>%
+  set_engine("xgboost", counts = FALSE)
+
+
+
 # Generate predictions
 dmatrix_test <- generate_dmatrix(features_test, outcome_test)
 predictions <- predict(our_model, dmatrix_test) 
@@ -139,3 +171,4 @@ r_squared_holdout <- 1-(sum(tse_model)/sum(tse_baseline))
 r_squared_holdout
 
 # TODO: Examine other metrics
+

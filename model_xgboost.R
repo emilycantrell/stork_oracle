@@ -6,7 +6,7 @@
 # Load package versions that were available on a given date ("groundhog day")
 library(groundhog)
 pkgs <- c("tidyverse", "xgboost", "caret")
-groundhog.day <- "2024-07-01"
+groundhog.day <- "2023-12-31" # This date aligns with a module on the Snellius supercomputer: "R-bundle-CRAN-/2023.12-foss-2023a"
 groundhog.library(pkgs, groundhog.day)
 
 # Read in feature data

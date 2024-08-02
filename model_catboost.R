@@ -1,13 +1,13 @@
 # This file runs a simple model to make PreFer predictions with synthetic data
 
-# Install catboost by running the following lines:
+# Install catboost on Mac by running the following lines:
 # install.packages('remotes')
 # remotes::install_url('https://github.com/catboost/catboost/releases/download/v1.2.5/catboost-R-darwin-universal2-1.2.5.tgz', INSTALL_opts = c("--no-multiarch", "--no-test-load"))
 
 # Load package versions that were available on a given date ("groundhog day")
 library(groundhog)
 pkgs <- c("tidyverse", "caret")
-groundhog.day <- "2024-07-01"
+groundhog.day <- "2023-12-31" # This date aligns with a module on the Snellius supercomputer: "R-bundle-CRAN-/2023.12-foss-2023a"
 groundhog.library(pkgs, groundhog.day)
 library(catboost) # Catboost cannot be loaded with groundhog because it is not in the CRAN library; please follow installation instructions above
 

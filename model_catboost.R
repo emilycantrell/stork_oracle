@@ -104,7 +104,7 @@ prep_features_for_model <- function(feature_data, outcome) {
 # Function to generate dataframe with the outcome
 prep_outcome_for_model <- function(feature_data, outcome) { 
   features_and_outcome <- generate_feature_and_outcome_dataframe(feature_data, outcome)
-  features_for_model <- features_and_outcome %>%
+  outcome_for_model <- features_and_outcome %>%
     mutate(outcome_as_factor = as.factor(make.names(outcome))) %>%
     pull(outcome_as_factor)
   }

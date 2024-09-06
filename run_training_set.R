@@ -14,7 +14,12 @@ library(tidyverse)
 library(data.table)
 library(furrr)
 
-run_training_set <- function(df, sampling_file, training_set_name) {
+run_training_set <- function(training_set_name, sampling_file_path, data_path) {
+  # Read the sampling file and the data file 
+  # Note: The files are read within the function so that they are read individually by each worker when the function is mapped
+  sampling_file <- fread(sampling_file_path, colClasses = c(RINPERSOON = "character"))
+  df <- fread(data_path, colClasses = c(RINPERSOON = "character"))
+  
   # Take a training_set (a name) and filter the data according to the the column 
   # in the sampling file with the same name.
   rinpersoon_vector_for_this_training_set <- sampling_file %>%
@@ -62,6 +67,7 @@ run_training_set <- function(df, sampling_file, training_set_name) {
   # TODO: Original spec said "add column" - I assume that meant "add rows"?
   # TODO: I'm not sure how to bind the results together since we are running in parallel.
   # The following code might need to be changed in order to work in a parallelized run.
+  # TODO: Adjust this code so that it saves the relevant info about the training set
   if (exists("results")) {
     results <- rbind.data.frame(results, results_for_this_training_set)
   } else {
@@ -72,4 +78,4 @@ run_training_set <- function(df, sampling_file, training_set_name) {
 }
 
 # Example: 
-# run_training_set(df = fake_data, sampling_file = fake_sampling_file, training_set_name = "train_sample_n_100")
+# run_training_set(training_set_name = "train_sample_n_100", sampling_file_path = fake_sampling_file_path, data_path = fake_data_path)

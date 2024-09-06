@@ -6,18 +6,16 @@ library(data.table)
 
 # Fake file inputs 
 fake_metadata <- fread("~/Documents/GitHub/stork_oracle_cbs/fake_data_for_code_testing/manually_generated_fake_metadata.csv")
-fake_sampling_file <- fread("~/Documents/GitHub/stork_oracle_cbs/fake_data_for_code_testing/pmt_train_and_evaluation_samples_seed_1.csv", 
-                            colClasses = c(RINPERSOON = "character")) 
-fake_data <- fread("~/Documents/GitHub/stork_oracle_cbs/fake_data_for_code_testing/fake_data_file.csv", 
-                   colClasses = c(RINPERSOON = "character"))
+fake_sampling_file_path <- "~/Documents/GitHub/stork_oracle_cbs/fake_data_for_code_testing/pmt_train_and_evaluation_samples_seed_1.csv" 
+fake_data_path <- "~/Documents/GitHub/stork_oracle_cbs/fake_data_for_code_testing/fake_data_file.csv"
 
 # Fake jobfile inputs (in a real run, this will be read from the jobfile)
+# TODO: Adjust the code to be able to handle the full training set as a training set option
 data_splits <- bind_rows(
   expand_grid( # Splits for studying sample size
     training_sets = c(
       "train_sample_n_100",
-      "train_sample_n_500",
-      "training_set"
+      "train_sample_n_500"
     ),
     selection_sets = c("evaluation_selection_50_percent_split", "evaluation_sample_n_1000"),
     test_sets = c("evaluation_test_50_percent_split", "evaluation_sample_n_1000")

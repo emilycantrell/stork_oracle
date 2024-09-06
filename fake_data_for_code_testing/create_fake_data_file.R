@@ -1,5 +1,6 @@
 # This file creates a very basic fake data file with the same fake RINPERSOONs
-# as the fake sampling files.
+# as the fake sampling files. Code to create the sampling files is available here: 
+# https://github.com/msalganik/prefer_pmt_umbrella/blob/main/train_and_eval_samples/creake_fake_prefer_train_and_eval.R
 
 library(tidyverse)
 library(data.table)

@@ -12,3 +12,8 @@ second_file_to_run.R
 test_run_all.R
 model_xgboost_fake_data.R
 model_catboost_fake_data.R
+Archive_gitignore/manually_generated_fake_metadata_v2.csv
+Archive_gitignore/manually_generated_fake_metadata_v1.csv
+fake_data_for_code_testing/fake_data_file.csv
+fake_data_for_code_testing/pmt_train_and_evaluation_samples_seed_1.csv
+fake_data_for_code_testing/pmt_train_and_evaluation_samples_seed_2.csv

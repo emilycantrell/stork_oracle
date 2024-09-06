@@ -60,9 +60,9 @@ models <- list(
       alpha = c(0, .15, .3, .5, .7, .85, 1),
       lambda = c(NA)
     ) %>%
-      bind_rows(list(alpha = 1, lambda = 0))
-  ),
-  n_steps = 100
+      bind_rows(list(alpha = 1, lambda = 0)),
+    n_steps = 100
+  )
 )
 
 metrics_for_all_pipelines <- c("LogLoss", "MSE", "R2_Score", "AUC")

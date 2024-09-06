@@ -36,7 +36,7 @@ data_splits <- bind_rows(
 )
 
 models <- list(
-  list(
+  catboost = list(
     name = "catboost",
     grid = expand_grid(
       learning_rate = c(.003, .03, .3, NA),

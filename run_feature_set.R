@@ -1,0 +1,40 @@
+# To run this code outside of the CBS RA, first run the following files: 
+# 1. fake_data_for_code_testing/fake_inputs_for_code_testing.R
+# 2. run_training_set.R
+# 3. run_sampling_file.R
+
+# This file creates run_feature_set(). It takes a feature_set, selects the data
+# according to the feature_set, and generates partial results by applying
+# run_sampling_file() to each sampling_file path from the jobfile. It takes the
+# partial results dataframe and adds a column for feature_set.
+
+run_feature_set <- function(feature_set, data_path) { 
+  # TODO: Update metadata_path to reflect the path we will use on OSSC
+  metadata_path <- "~/Documents/GitHub/stork_oracle_cbs/fake_data_for_code_testing/manually_generated_fake_metadata.csv"
+  metadata <- fread(metadata_path)
+  data <- fread(data_path)
+  
+  # Take a feature_set and select the data according to the feature_set
+  # TODO: Is the data file just feature data, or does it also contain the outcome? If it contains the outcome, adjust the code here accordingly. (Relatedly, clarify meaning of "df" throughout all files)
+  elements_of_selected_feature_set <- feature_sets[[feature_set]]
+  names_of_features_in_the_selected_feature_set <- metadata %>%
+    filter(rowSums(select(., all_of(elements_of_selected_feature_set))) > 0)%>%
+    pull(variable_name)
+  feature_data <- data %>%
+    select(all_of(names_of_features_in_the_selected_feature_set))
+  
+  # Generate partial results by applying run_sampling_file() to each sampling_file path from the jobfile.
+  results_for_this_feature_set <- future_map_dfr(sampling_files, 
+                                                 ~run_sampling_file(.x, 
+                                                                    data_path = data_path))
+  
+  # Take the partial results dataframe and add a column for feature_set.
+  # TODO: do we want the value saved here to be the feature set as named in the jobfile (e.g., "minimal engineering") or the metadata columns (e.g., "GBAPERSOONTAB, GBAHUISHOUDENBUS")?
+  results_for_this_feature_set <- results_for_this_feature_set %>%
+    mutate(feature_set = feature_set)
+  
+  return(results_for_this_feature_set)
+}
+
+# Example
+# run_feature_set(feature_set = "minimal_engineering", data_path = fake_data_path)

@@ -63,18 +63,11 @@ run_training_set <- function(training_set_name, sampling_file_path, data_path) {
                                                               selection_set = selection_rows,
                                                               test_set = test_rows))
   
-  # Take the partial results dataframe and adds rows for the training_set.
-  # TODO: Original spec said "add column" - I assume that meant "add rows"?
-  # TODO: I'm not sure how to bind the results together since we are running in parallel.
-  # The following code might need to be changed in order to work in a parallelized run.
-  # TODO: Adjust this code so that it saves the relevant info about the training set
-  if (exists("results")) {
-    results <- rbind.data.frame(results, results_for_this_training_set)
-  } else {
-    results <- results_for_this_training_set
-  }
-  
-  return(results)
+  # Take the partial results dataframe and add column for the training_set.
+  results_for_this_training_set <- results_for_this_training_set %>%
+    mutate(training_set = training_set_name)
+
+  return(results_for_this_training_set)
 }
 
 # Example: 

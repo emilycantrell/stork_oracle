@@ -4,12 +4,24 @@
 library(tidyverse)
 library(data.table)
 
+# Set up code to run in parallel
+# I chose multisession because I'm running from rstudio. However, we might want multicore for the real run.
+plan(multisession, workers = 7) 
+
 # Fake file inputs 
 fake_metadata <- fread("~/Documents/GitHub/stork_oracle_cbs/fake_data_for_code_testing/manually_generated_fake_metadata.csv")
 fake_sampling_file_path <- "~/Documents/GitHub/stork_oracle_cbs/fake_data_for_code_testing/pmt_train_and_evaluation_samples_seed_1.csv" 
 fake_data_path <- "~/Documents/GitHub/stork_oracle_cbs/fake_data_for_code_testing/fake_data_file.csv"
 
 # Fake jobfile inputs (in a real run, this will be read from the jobfile)
+sampling_files <- c("pmt_train_and_evaluation_samples_seed_1.csv", "pmt_train_and_evaluation_samples_seed_2.csv")
+
+feature_sets <- list(
+  full = c("GBAPERSOONTAB", "GBAHUISHOUDENBUS", "prefer_official_train"),
+  minimal_engineering = c("GBAPERSOONTAB", "GBAHUISHOUDENBUS"),
+  sex_and_birthyear = c("sex_and_birthyear")
+)
+
 # TODO: Adjust the code to be able to handle the full training set as a training set option
 data_splits <- bind_rows(
   expand_grid( # Splits for studying sample size

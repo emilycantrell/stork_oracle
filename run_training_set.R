@@ -36,7 +36,7 @@ run_training_set <- function(training_set_name, sampling_file_path, data_path) {
     pull(selection_sets) %>%
     unique()
   rinpersoon_vector_for_associated_selection_sets <- sampling_file %>%
-    filter(rowSums(select(., all_of(associated_selection_sets)) == 1) > 0) %>%
+    filter(rowSums(select(., all_of(associated_selection_sets))) > 0) %>%
     pull(RINPERSOON)
   selection_rows <- df %>% 
     filter(RINPERSOON %in% rinpersoon_vector_for_associated_selection_sets)

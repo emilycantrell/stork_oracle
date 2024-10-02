@@ -8,6 +8,7 @@ library(tidyverse)
 seed_job <- 0
 seed_worker <- 0
 workers <- 1
+n_thread_within_worker <- -1
 
 # Feature choices
 feature_set_settings <- list(

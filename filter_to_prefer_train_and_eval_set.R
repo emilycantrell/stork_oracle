@@ -17,8 +17,8 @@ outcome_data <- prefer_official_train %>%
  official_train_rinpersoon <- outcome_data$RINPERSOON
 
 # Save the rest of the official PreFer train set, filtered to just the PreFer official train set with non-missing outcomes
-# prefer_official_train <- prefer_official_train %>%
-  # select(-RINPERSOONS, -children_post2021, -RINPERSOONSVERBINTENISP, -RINPERSOONVERBINTENISP, -RINPERSOONSHKW, -RINPERSOONHKW, -SOORTOBJECTNUMMER, -RINOBJECTNUMMER, -HUISHOUDNR, -evaluation_set)
+prefer_official_train <- prefer_official_train %>%
+  select(-RINPERSOONS, -children_post2021, -RINPERSOONSVERBINTENISP, -RINPERSOONVERBINTENISP, -RINPERSOONSHKW, -RINPERSOONHKW, -SOORTOBJECTNUMMER, -RINOBJECTNUMMER, -HUISHOUDNR, -evaluation_set)
 
 # Save PERSOONTAB, filtered to just the PreFer official train set with non-missing outcomes
 gbapersoontab <- fread(data_files$gbapersoontab, colClasses = c(RINPERSOON = "character")) %>%

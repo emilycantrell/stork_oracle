@@ -21,7 +21,7 @@ run_step <- function(step) {
   evaluation_sets_predictions <- NULL
   
   predict_for_catboost <- function() {
-    evaluation_sets_predictions <<- catboost.predict(model_fit, evaluation_sets_data, prediction_type = "Probability", ntree_end = step)
+    evaluation_sets_predictions <<- catboost.predict(model_fit, evaluation_sets_data, prediction_type = "Probability", ntree_end = step, thread_count = 1)
   }
   
   predict_for_xgboost <- function() {

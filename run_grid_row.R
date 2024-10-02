@@ -1,10 +1,3 @@
-# This file defines how each worker should implement the specifications laid
-# out in chunking.R or by run_metric_for_selecting_pipelines_outputs in 
-# run_metric_for_selecting_pipelines.R. Each worker filters the data to the
-# specified training set and corresponding evaluation sets, conduct some final
-# pipeline-specific preprocessing, get the fitted model, make predictions for 
-# evaluation sets, and calculate performance metrics.
-
 library(tidymodels)
 library(catboost)
 library(xgboost)
@@ -118,82 +111,91 @@ run_grid_row <- function(feature_set, sampling_file, training_set, model, grid_r
   
   steps <- NULL
   model_fit <- NULL
+  
+  grid_row_text <- paste(names(grid_row), grid_row, sep = "=", collapse = ",")
+  model_path <- paste(feature_set, sampling_file, training_set, model, grid_row_text, sep = "_")
 
-  fit_model_for_catboost <- function(learning_rate, subsample, depth) {
-    
+  get_model_for_catboost <- function(learning_rate, subsample, depth) {
     if (is.null(selection_set)) {
       steps <<- model_settings[[model]]$steps
-    } else {
-      steps <<- filter(run_selection_metric_outputs, run_selection_metric_outputs$feature_set == this_feature_set, run_selection_metric_outputs$sampling_file == this_sampling_file, run_selection_metric_outputs$training_set == this_training_set, run_selection_metric_outputs$model == this_model, run_selection_metric_outputs$selection_set == this_selection_set) %>%
-        pull(step)
-    }
-    if (is.na(learning_rate)) {
-      learning_rate_internal <- NULL
-      steps_internal <- max(model_settings[[model]]$steps)
-    } else {
-      learning_rate_internal <- learning_rate
-      steps_internal <- max(steps)
-    }
-    # Train the model
-    model_fit <<- catboost.train(training_set_data, params = list(
-      loss_function = "Logloss",
-      iterations = steps_internal,
-      learning_rate = learning_rate_internal,
-      subsample = subsample,
-      depth = depth,
-      logging_level = "Silent"
-    ))
-  }
-  
-  fit_model_for_xgboost <- function(eta, subsample, max_depth) {
-    if (is.null(selection_set)) {
-      steps <<- model_settings[[model]]$steps
-    } else {
-      steps <<- filter(run_selection_metric_outputs, run_selection_metric_outputs$feature_set == this_feature_set, run_selection_metric_outputs$sampling_file == this_sampling_file, run_selection_metric_outputs$training_set == this_training_set, run_selection_metric_outputs$model == this_model, run_selection_metric_outputs$selection_set == this_selection_set) %>%
-        pull(step)
-    }
-    # Train the model
-    model_fit <<- xgb.train(
-      params = list(
-        objective = "binary:logistic", 
-        eta = eta,
+      if (is.na(learning_rate)) {
+        learning_rate_internal <- NULL
+        steps_internal <- max(model_settings[[model]]$steps)
+      } else {
+        learning_rate_internal <- learning_rate
+        steps_internal <- max(steps)
+      }
+      # Train the model
+      model_fit <<- catboost.train(training_set_data, params = list(
+        loss_function = "Logloss",
+        iterations = steps_internal,
+        learning_rate = learning_rate_internal,
         subsample = subsample,
-        max_depth = max_depth,
-        nthread = 1
-      ), 
-      data = training_set_data,
-      nrounds = max(steps)
-    )
+        depth = depth,
+        thread_count = 1,
+        logging_level = "Silent"
+      ))
+      catboost.save_model(model_fit, model_path)
+    } else {
+      steps <<- filter(run_selection_metric_outputs, run_selection_metric_outputs$feature_set == this_feature_set, run_selection_metric_outputs$sampling_file == this_sampling_file, run_selection_metric_outputs$training_set == this_training_set, run_selection_metric_outputs$model == this_model, run_selection_metric_outputs$selection_set == this_selection_set) %>%
+        pull(step)
+      model_fit <<- catboost.load_model(model_path)
+    }
   }
   
-  fit_model_for_elastic_net <- function(alpha, lambda) {
-    if (is.na(lambda)) {
-      lambda_internal <- NULL
-      steps_internal <- max(model_settings[[model]]$steps)
-      if (is.null(selection_set)) {
+  get_model_for_xgboost <- function(eta, subsample, max_depth) {
+    if (is.null(selection_set)) {
+      # Train the model
+      steps <<- model_settings[[model]]$steps
+      model_fit <<- xgb.train(
+        params = list(
+          objective = "binary:logistic", 
+          eta = eta,
+          subsample = subsample,
+          max_depth = max_depth,
+          nthread = 1
+        ), 
+        data = training_set_data,
+        nrounds = max(steps)
+      )
+      xgb.save(model_fit, model_path)
+    } else {
+      steps <<- filter(run_selection_metric_outputs, run_selection_metric_outputs$feature_set == this_feature_set, run_selection_metric_outputs$sampling_file == this_sampling_file, run_selection_metric_outputs$training_set == this_training_set, run_selection_metric_outputs$model == this_model, run_selection_metric_outputs$selection_set == this_selection_set) %>%
+        pull(step)
+      model_fit <<- xgb.load(model_path)
+    }
+    
+  }
+  
+  get_model_for_elastic_net <- function(alpha, lambda) {
+    if (is.null(selection_set)) {
+      if (is.na(lambda)) {
+        lambda_internal <- NULL
+        steps_internal <- max(model_settings[[model]]$steps)
         steps <<- model_settings[[model]]$steps
       } else {
-        steps <<- filter(run_selection_metric_outputs, run_selection_metric_outputs$feature_set == this_feature_set, run_selection_metric_outputs$sampling_file == this_sampling_file, run_selection_metric_outputs$training_set == this_training_set, run_selection_metric_outputs$model == this_model, run_selection_metric_outputs$selection_set == this_selection_set) %>%
-          pull(step)
+        lambda_internal <- lambda
+        steps_internal <- 1
+        steps <<- 1
       }
+      
+      model_fit <<- glmnet(training_set_data, training_set_outcomes,
+                           family = "binomial",
+                           alpha = alpha,
+                           lambda = lambda_internal,
+                           nlambda = steps_internal)
+      saveRDS(model_fit, model_path)
     } else {
-      lambda_internal <- lambda
-      steps_internal <- 1
-      steps <<- 1
+      steps <<- filter(run_selection_metric_outputs, run_selection_metric_outputs$feature_set == this_feature_set, run_selection_metric_outputs$sampling_file == this_sampling_file, run_selection_metric_outputs$training_set == this_training_set, run_selection_metric_outputs$model == this_model, run_selection_metric_outputs$selection_set == this_selection_set) %>%
+        pull(step)
+      model_fit <<- readRDS(model_path)
     }
-    
-    model_fit <<- glmnet(training_set_data, training_set_outcomes,
-                    family = "binomial",
-                    alpha = alpha,
-                    lambda = lambda_internal,
-                    nlambda = steps_internal)
   }
   
-  
-  do.call(get(paste0("fit_model_for_", model)), grid_row)
+  do.call(get(paste0("get_model_for_", model)), grid_row)
   
   run_grid_row_output <- map(steps, run_step)
-  run_grid_row_output <- tibble(feature_set = feature_set, sampling_file = sampling_file, training_set = training_set, model = model, grid_row = list(grid_row), run_grid_row_output = run_grid_row_output)
+  run_grid_row_output <- tibble(feature_set = feature_set, sampling_file = sampling_file, training_set = training_set, model = model, grid_row = list(grid_row), grid_row_text = grid_row_text, run_grid_row_output = run_grid_row_output)
   if (is.null(selection_set)) {
     run_grid_row_output
   } else {
@@ -209,9 +211,3 @@ run_grid_row_outputs <- future_pmap(grid_rows, ~run_grid_row(..., selection_set 
   list_rbind() %>%
   unnest(run_grid_row_output) %>%
   unnest(run_step_output)
-
-run_grid_row_outputs %>%
-  rowwise() %>%
-  mutate(grid_row = paste(names(grid_row), grid_row, sep = "=", collapse = ",")) %>%
-  fwrite("intermediate_results.csv")
-print(Sys.time())

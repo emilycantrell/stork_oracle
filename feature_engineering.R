@@ -1,9 +1,7 @@
 library(data.table) # 1.15.4 on CBS server
 library(tidyverse) # 2.0.0 on CBS server
 
-# Create meaningfully new features at the individual level
-
-# Note: 
+# Note: The earliest available household start date is 1994-10-01. This means:
 # For people aged approx. 18 - 25 in 2020, we have info on their birth household.
 # For people aged approx. 25 - 42, we have info on household(s) from some year(s) under age 18.
 # For people aged approx. 43 - 45, we don't have info on their household until adulthood.
@@ -13,8 +11,9 @@ library(tidyverse) # 2.0.0 on CBS server
 # Current household
 gbahuishoudensbus <- gbahuishoudensbus[order(-DATUMAANVANGHH), # put household start date in descending order (most recent first)
                             .SD[1], # choose the top row per group (i.e., per person)
-                            by = RINPERSOON] # the grouping variable is RINPERSOON
-
+                            by = RINPERSOON] %>% # the grouping variable is RINPERSOON
+  select(-DATUMAANVANGHH)
+gc()
 # Previous household (the household immediately before the current household)
 # previous_household <- gbahuishoudensbus[order(-DATUMAANVANGHH), # put household start date in descending order (most recent first)  
 #                             .SD[2], # choose the second-from-the-top row per group (i.e., per person)
@@ -48,10 +47,10 @@ gbahuishoudensbus <- gbahuishoudensbus[order(-DATUMAANVANGHH), # put household s
 # 
 # # Smaller dataframe with just a few miscellaneous people, for faster run times while developing the main code 
 # toy <- gbahuishoudensbus %>%
-#   filter(RINPERSOON %in% c("XX", "XX", "XX", "XX", "XX"))
+#   filter(RINPERSOON %in% c("000003406", "000000030", "000012440", "000001967", "000000050"))
 # 
 # # Code to filter to just one person, to manually examine what their household pattern looks like
-# person_to_check <- "XX"
+# person_to_check <- "000000050"
 # toy %>%
 #   filter(RINPERSOON == person_to_check) %>%
 #   arrange((DATUMAANVANGHH)) %>%

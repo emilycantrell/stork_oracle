@@ -2,7 +2,11 @@ library(tidyverse) # 2.0.0 on CBS server
 library(fastDummies) # 1.7.3 on CBS server
 
 #### READ IN DATA ####
-data <- list(gbapersoontab, gbahuishoudensbus, prefer_official_train) %>% 
+household_data <- left_join(gbahuishoudensbus_train_focal_people_only_current_household, 
+                            child_age_and_sex_by_household, 
+                            by = join_by(household_id)) %>%
+  select(-household_id)
+data <- list(gbapersoontab_train, household_data, prefer_official_train, live_in_partner_data, features_from_familienetwerktab, ego_age) %>% 
   reduce(full_join, by = "RINPERSOON") %>%
   select(-ends_with(".y")) %>%
   rename(GBAGEBOORTELAND = GBAGEBOORTELAND.x,
@@ -23,6 +27,16 @@ data <- list(gbapersoontab, gbahuishoudensbus, prefer_official_train) %>%
          AANTALOVHH = AANTALOVHH.x,
          GEBJAARJONGSTEKINDHH = GEBJAARJONGSTEKINDHH.x)
 
+# Remove files to clear up memory 
+rm(gbahuishoudensbus_train_focal_people_only_current_household)
+rm(child_age_and_sex_by_household)
+rm(gbapersoontab_train)
+rm(prefer_official_train)
+rm(live_in_partner_data)
+rm(features_from_familienetwerktab)
+rm(ego_age)
+gc()
+
 # Use metadata to identify variables types 
 continuous_variables <- metadata %>%
   filter(variable_type == "continuous") %>%
@@ -39,7 +53,7 @@ integer64 <- names(classes)[which(classes == "integer64")]
 data <- mutate(data,
   across(all_of(integer64), as.numeric),
   
-  #  # Address missingness
+  # Address missingness
   INPBELI = ifelse(INPBELI == 9999999999, NA, INPBELI),
   INPP100PBRUT = ifelse(INPP100PBRUT < 0, NA, INPP100PBRUT),
   INPP100PPERS = ifelse(INPP100PPERS < 0, NA, INPP100PPERS),

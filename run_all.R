@@ -1,4 +1,5 @@
 # Please run the following in terminal:
+# TODO: THIS TERMINAL INSTRUCTION IS OUTDATED, DISCUSS WITH MALTE
 # Rscript run_all.R "H:/DATASETS/train.csv" "H:/DATASETS/holdout_intermediate_leaderboard.csv" "H:/DATASETS/holdout_final_leaderboard.csv" "G:/Bevolking/GBAPERSOONTAB/2020/geconverteerde data/GBAPERSOON2020TABV3.csv" "G:/Bevolking/GBAHUISHOUDENSBUS/geconverteerde data/GBAHUISHOUDENS2020BUSV1.csv" "H:/DATASETS/documentation/Codebook UPD.xlsx" "H:/pmt/stork_oracle_submission/"
 
 # This file calls all other associated R files. This 
@@ -14,9 +15,10 @@ library(furrr)
 args <- commandArgs(trailingOnly = TRUE)
 
 data_files <- list(
-  prefer_official_train = args[1] # "H:/DATASETS/train.csv"
-  # gbapersoontab = args[2] "G:/Bevolking/GBAPERSOONTAB/2020/geconverteerde data/GBAPERSOON2020TABV3.csv"
-  # gbahuishoudensbus = args[3] "G:/Bevolking/GBAHUISHOUDENSBUS/geconverteerde data/GBAHUISHOUDENS2020BUSV1.csv"
+  prefer_official_train = args[1], # "H:/DATASETS/train.csv",
+  gbapersoontab = args[2], # "G:/Bevolking/GBAPERSOONTAB/2020/geconverteerde data/GBAPERSOON2020TABV3.csv",
+  gbahuishoudensbus = args[3], # "G:/Bevolking/GBAHUISHOUDENSBUS/geconverteerde data/GBAHUISHOUDENS2020BUSV1.csv",
+  familienetwerktab = args[4] # "G:/Bevolking/FAMILIENETWERKTAB/FAMILIENETWERK2020TABV1.csv"
 )
 
 prefer_official_train_codebook_path <- args[length(args)-1] # "H:/DATASETS/documentation/Codebook UPD.xlsx"

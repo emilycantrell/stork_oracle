@@ -39,6 +39,9 @@ run_grid_row <- function(feature_set, sampling_file, training_set, model, grid_r
   zv <- recipe(training_set_data) %>%
     step_zv() %>%
     prep(training_set_data, strings_as_factors = "FALSE")
+  # Save the remove_zero_variance recipe
+  saveRDS(zv, "remove_zero_variance.RDS")
+  # Apply recipe for removing zero variance
   training_set_data <- bake(zv, training_set_data)
   training_set_outcomes <- outcome_data$outcome[outcome_data$RINPERSOON %in% training_set_rinpersoon]
   
@@ -132,7 +135,7 @@ run_grid_row <- function(feature_set, sampling_file, training_set, model, grid_r
         learning_rate = learning_rate_internal,
         subsample = subsample,
         depth = depth,
-        thread_count = 1,
+        # thread_count = n_thread_within_worker, # this is commented out because it raised the error: Catboost can't parse parameter "thread_count" with value: -1
         logging_level = "Silent"
       ))
       catboost.save_model(model_fit, model_path)

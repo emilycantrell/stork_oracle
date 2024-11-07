@@ -34,10 +34,23 @@ run_metric <- function(metric, predictions, outcomes, check_threshold_reference_
     ifelse(is.na(output), 0, output)
   }
   run_metric_Accuracy <- function() {
-    value <- Accuracy(predictions_internal, outcomes)
-    ifelse(is.na(value), 0, value)
+    # 2024-10-31: This originally said "value" instead of "output". Emily changed it to "output" but did not test the change.
+    output <- Accuracy(predictions_internal, outcomes)
+    ifelse(is.na(output), 0, output)
   }
-  
+  run_metric_Deciles_for_Calibration <- function() { 
+    breaks_for_deciles <- unique(quantile(predictions_internal, probs = seq(0, 1, by = 0.1)))
+    deciles <- cut(predictions_internal, breaks = breaks_for_deciles, include.lowest = TRUE, labels = FALSE)
+    mean_predictions <- tapply(predictions_internal, deciles, mean)
+    mean_outcomes <- tapply(outcomes, deciles, mean)
+    count_per_decile <- tapply(outcomes, deciles, length)
+    smallest_count <- min(count_per_decile) # there can be slight variation in size if n is not divisible by 10
+    if(smallest_count >= 10) {
+      output <- list(mean_predictions = mean_predictions, mean_outcomes = mean_outcomes, count_per_decile = count_per_decile)
+    } else {
+      output <- "NA: deciles are too small to export"
+    }
+  }
   if(check_threshold_reference_if_applicable & metric %in% c("F1_Score", "Recall", "Precision", "Accuracy")) {
     winning_threshold <- threshold_reference$winning_threshold[threshold_reference$metric == metric]
     predictions_internal <- ifelse(predictions >= winning_threshold, 1, 0)
@@ -46,6 +59,5 @@ run_metric <- function(metric, predictions, outcomes, check_threshold_reference_
     predictions_internal <- predictions
     tibble(metric = metric, value = get(paste0("run_metric_", metric))())
   }
-  
   
 }

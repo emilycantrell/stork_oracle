@@ -95,7 +95,7 @@ n_grid_row <- 1 # how many hyperparameter combinations to sample from expanded
 # grid?
 
 # Performance metrics
-metrics_for_all_pipelines <- c("LogLoss", "MSE", "R2_Score", "AUC", "Deciles_for_Calibration") # Deciles_for_Calibration
+metrics_for_all_pipelines <- c("LogLoss", "MSE", "In_Sample_R2", "R2_Holdout", "AUC", "Deciles_for_Calibration") # Deciles_for_Calibration
 metrics_for_selecting_pipelines <- c("LogLoss")
 metrics_for_winning_pipelines <- c("F1_Score")
 threshold_increment <- .01

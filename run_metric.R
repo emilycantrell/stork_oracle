@@ -11,8 +11,14 @@ run_metric <- function(metric, predictions, outcomes, check_threshold_reference_
   run_metric_MSE <- function() {
     MSE(predictions_internal, outcomes)
   }
-  run_metric_R2_Score <- function() {
+  run_metric_In_Sample_R2 <- function() {
     output <- R2_Score(predictions_internal, outcomes)
+    ifelse(is.na(output), -Inf, output)
+  }
+  run_metric_R2_Holdout <- function() { 
+    sum_of_squares_predictions <- sum((outcomes - predictions_internal)^2)
+    sum_of_squares_baseline <- sum((outcomes - training_set_outcome_mean)^2)
+    output <- 1 - (sum_of_squares_predictions / sum_of_squares_baseline)
     ifelse(is.na(output), -Inf, output)
   }
   run_metric_AUC <- function() {

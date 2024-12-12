@@ -44,6 +44,9 @@ run_grid_row <- function(feature_set, sampling_file, training_set, model, grid_r
   # Apply recipe for removing zero variance
   training_set_data <- bake(zv, training_set_data)
   training_set_outcomes <- outcome_data$outcome[outcome_data$RINPERSOON %in% training_set_rinpersoon]
+ 
+  # Save the mean of the training set outcome for use in R2_holdout calculation (see run_metric file)
+  training_set_outcome_mean <- mean(training_set_outcomes)
   
   data_splits_related_to_training_set <- 
     filter(data_splits, training_sets == training_set)

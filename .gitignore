@@ -17,3 +17,6 @@ Archive_gitignore/manually_generated_fake_metadata_v1.csv
 fake_data_for_code_testing/fake_data_file.csv
 fake_data_for_code_testing/pmt_train_and_evaluation_samples_seed_1.csv
 fake_data_for_code_testing/pmt_train_and_evaluation_samples_seed_2.csv
+*.R
+dataset_size_analysis/topics_at_100k.png
+*.png

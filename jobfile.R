@@ -68,7 +68,8 @@ model_settings <- list(
     depth = c(6)
   ),
   list)),
-  steps = c(1000)) # how many trees in catboost?
+  steps = c(1000)), # how many trees in catboost?
+  training_mean = list()
   # catboost = list(tibble(grid_row = pmap(expand_grid(
   #   learning_rate = c(.009, .03, .09, .3, .9, NA),
   #   subsample = c(.2, .5, .8, 1),

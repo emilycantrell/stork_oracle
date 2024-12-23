@@ -32,6 +32,10 @@ run_step <- function(step) {
     evaluation_sets_predictions <<- predict(model_fit, evaluation_sets_data, s = model_fit$lambda[[step]], type = "response")
   }
   
+  predict_for_training_mean <- function() { 
+    evaluation_sets_predictions <<- rep(training_set_outcome_mean, nrow(evaluation_sets_data))
+  }
+  
   get(paste0("predict_for_", model))()
   
   if (!is.null(selection_set)) {

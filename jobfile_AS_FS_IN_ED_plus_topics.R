@@ -7,41 +7,42 @@ library(tidyverse)
 # Parallelization settings
 seed_job <- 0
 seed_worker <- 0
-workers <- 4
+workers_grid_row <- 3
+workers_metric_for_selecting_pipelines <- 3
 #n_thread_within_worker <- -1
 
 # Feature choices
+# NB: make sure to use equal signs here, not arrows
 feature_set_settings <- list(
-  ego_AS = c("ego_AS"), 
-  ego_partner_AS = c("ego_AS", "partner_AS"), 
-  ego_partner_hhchildren_AS = c("ego_AS", "partner_AS", "child_age_and_sex_by_household")
-  #all_plus_LiveInPartner = c("GBAPERSOONTAB", "GBAHUISHOUDENSBUS", "prefer_official_train", "FAMILIENETWERKTAB", "live_in_partner")
-  #all_plus_hhchildAS = c("GBAPERSOONTAB", "GBAHUISHOUDENSBUS", "prefer_official_train", "FAMILIENETWERKTAB", "child_age_and_sex_by_household")
-  #all_records = c("GBAPERSOONTAB", "GBAHUISHOUDENSBUS", "prefer_official_train", "FAMILIENETWERKTAB")
-  #augmented_records = c("GBAPERSOONTAB", "GBAHUISHOUDENSBUS", "prefer_official_train")
-  #householdbus = c("GBAHUISHOUDENSBUS")
-  #number_of_children = c("number_of_children")
-  #household_birthdays = c("household_birthdays")
+  AS_FS_IN_ED_immigration = c("family_age_and_sex_from_prefer_submission",
+                              "family_structure",
+                              "income_assets_benefits",
+                              "education",
+                              "immigration_ethnicity"), 
+  AS_FS_IN_ED_employment = c("family_age_and_sex_from_prefer_submission", 
+                             "family_structure",
+                             "income_assets_benefits",
+                             "education",
+                             "employment"),
+  AS_FS_IN_ED_housing = c("family_age_and_sex_from_prefer_submission", 
+                          "family_structure",
+                          "income_assets_benefits",
+                          "education",
+                          "housing"), 
+  AS_FS_IN_ED_childcare = c("family_age_and_sex_from_prefer_submission", 
+                            "family_structure",
+                            "income_assets_benefits",
+                            "education",
+                            "childcare_proximity")
 )
 
 # Train-test splits 
 sampling_files <- c("pmt_train_and_evaluation_samples_seed_1_241016.csv")
 data_splits <- bind_rows(
   expand_grid(
-    training_sets = c("train_sample_n_100",
-                      "train_sample_n_500", 
-                      "train_sample_n_1000", 
-                      "train_sample_n_5000", 
-                      "train_sample_n_10000", 
-                      "train_sample_n_50000", 
-                      "train_sample_n_100000",
-                      "train_sample_n_500000",
-                      "train_sample_n_1000000",
-                      "train_sample_n_2000000",
-                      "train_sample_n_3000000",
-                      "training_set"),
-    selection_sets = c("evaluation_set"), # Evaluation sets we use to select the best pipelines
-    test_sets = c("evaluation_set") # Evaluation sets we use for holdout evaluations.
+    training_sets = c("train_sample_n_100000"),
+    selection_sets = c("evaluation_selection_50_percent_split"), # Evaluation sets we use to select the best pipelines
+    test_sets = c("evaluation_test_50_percent_split") # Evaluation sets we use for holdout evaluations.
   )
 )
 
@@ -83,12 +84,12 @@ n_grid_row <- 1 # how many hyperparameter combinations to sample from expanded
 # grid?
 
 # Performance metrics
-metrics_for_all_pipelines <- c("LogLoss", "MSE", "R2_Score", "AUC")
+metrics_for_all_pipelines <- c("LogLoss", "MSE", "In_Sample_R2", "R2_Holdout", "AUC") # Deciles_for_Calibration
 metrics_for_selecting_pipelines <- c("LogLoss")
-metrics_for_winning_pipelines <- c("F1_Score")
+metrics_for_winning_pipelines <- c("F1_Score") # F1_Score
 threshold_increment <- .01
-n_bootstrap <- 100
+n_bootstrap <- 2 # A very small number because we are not really interested
 # in confidence intervals for this submission
 
 save_only_winning_hyperparameter_draw_results <- FALSE
-results_path <- "results.csv"
+results_path <- "results_AS_FS_IN_ED_plus_topics.csv"

@@ -5,7 +5,7 @@ library(glmnet)
 library(tidyverse)
 
 run_grid_row <- function(feature_set, sampling_file, training_set, model, grid_row, step, selection_set, metrics_for_all_pipelines, metrics_for_winning_pipelines, n_bootstrap, threshold_increment) {
-  print(Sys.getpid())
+  
   set.seed(seed_worker)
   bootstrap_samples <- 1:(n_bootstrap+1)
   this_feature_set <- feature_set
@@ -44,8 +44,8 @@ run_grid_row <- function(feature_set, sampling_file, training_set, model, grid_r
   # Apply recipe for removing zero variance
   training_set_data <- bake(zv, training_set_data)
   training_set_outcomes <- outcome_data$outcome[outcome_data$RINPERSOON %in% training_set_rinpersoon]
-
-  # Save the mean of the training set outcome for use in R2_Holdout calculation (see run_metric file)
+ 
+  # Save the mean of the training set outcome for use in R2_holdout calculation (see run_metric file)
   training_set_outcome_mean <- mean(training_set_outcomes)
   
   data_splits_related_to_training_set <- 
@@ -132,11 +132,6 @@ run_grid_row <- function(feature_set, sampling_file, training_set, model, grid_r
         steps_internal <- max(steps)
       }
       # Train the model
-      
-      fit_start <- Sys.time()
-      print(paste("Fitting started for", model_path))
-      print(fit_start)
-
       model_fit <<- catboost.train(training_set_data, params = list(
         loss_function = "Logloss",
         iterations = steps_internal,
@@ -146,13 +141,6 @@ run_grid_row <- function(feature_set, sampling_file, training_set, model, grid_r
         # thread_count = n_thread_within_worker, # this is commented out because it raised the error: Catboost can't parse parameter "thread_count" with value: -1
         logging_level = "Silent"
       ))
-      
-      fit_end <- Sys.time()
-      print(paste("Fitting ended for", model_path))
-      print(fit_end)
-      print(paste("Fitting time for", model_path))
-      print(fit_end - fit_start)
-      
       catboost.save_model(model_fit, model_path)
     } else {
       steps <<- filter(run_selection_metric_outputs, run_selection_metric_outputs$feature_set == this_feature_set, run_selection_metric_outputs$sampling_file == this_sampling_file, run_selection_metric_outputs$training_set == this_training_set, run_selection_metric_outputs$model == this_model, run_selection_metric_outputs$selection_set == this_selection_set) %>%
@@ -212,17 +200,7 @@ run_grid_row <- function(feature_set, sampling_file, training_set, model, grid_r
   
   do.call(get(paste0("get_model_for_", model)), grid_row)
   
-  steps_start <- Sys.time()
-  print(paste("run_steps started for", model_path))
-  print(steps_start)
   run_grid_row_output <- map(steps, run_step)
-  steps_end <- Sys.time()
-  print(paste("run_steps ended for", model_path))
-  print(steps_end)
-  print(paste("Time for run_steps to run for", model_path))
-  print(steps_end - steps_start)
-
-  
   run_grid_row_output <- tibble(feature_set = feature_set, sampling_file = sampling_file, training_set = training_set, model = model, grid_row = list(grid_row), grid_row_text = grid_row_text, run_grid_row_output = run_grid_row_output)
   if (is.null(selection_set)) {
     run_grid_row_output
@@ -233,13 +211,9 @@ run_grid_row <- function(feature_set, sampling_file, training_set, model, grid_r
 
 options(future.globals.maxSize = +Inf)
 
-plan(multisession, workers = workers_grid_row)
- 
-run_grid_row_outputs <- future_pmap(grid_rows, ~run_grid_row(..., selection_set = NULL, metrics_for_all_pipelines = metrics_for_all_pipelines, metrics_for_winning_pipelines = metrics_for_winning_pipelines, n_bootstrap = n_bootstrap, threshold_increment = NULL), .options = furrr_options(seed = TRUE, scheduling = Inf)) %>%
+plan(multisession, workers = workers)
+
+run_grid_row_outputs <- future_pmap(grid_rows, ~run_grid_row(..., selection_set = NULL, metrics_for_all_pipelines = metrics_for_all_pipelines, metrics_for_winning_pipelines = metrics_for_winning_pipelines, n_bootstrap = n_bootstrap, threshold_increment = NULL), .options = furrr_options(seed = TRUE)) %>%
   list_rbind() %>%
   unnest(run_grid_row_output) %>%
   unnest(run_step_output)
-
-select(run_grid_row_outputs, -grid_row) %>%
-  rename(grid_row = grid_row_text) %>%
-  fwrite(paste0("intermediate_", results_path))

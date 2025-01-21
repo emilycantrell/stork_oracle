@@ -14,28 +14,12 @@ prefer_official_train <- fread(data_files$prefer_official_train, colClasses = c(
 outcome_data <- prefer_official_train %>%
   select(RINPERSOON, children_post2021) %>%
   rename(outcome = children_post2021)
+official_train_rinpersoon <- outcome_data$RINPERSOON
 
 # Save the rest of the official PreFer train set, filtered to just the PreFer official train set with non-missing outcomes
 prefer_official_train <- prefer_official_train %>%
   select(-RINPERSOONS, -children_post2021, -RINPERSOONSVERBINTENISP, -RINPERSOONVERBINTENISP, -RINPERSOONSHKW, -RINPERSOONHKW, -SOORTOBJECTNUMMER, -RINOBJECTNUMMER, -HUISHOUDNR, -evaluation_set)
 print("filter_to_prefer_train_and_eval_set: steps for prefer_official_train and outcome dataframe are complete.")
-
-# Append the PreFer official holdout rows onto the training set (for the feature df)
-prefer_official_holdout_features <- fread(data_files$prefer_official_holdout_features, colClasses = c(RINPERSOON = "character"))
-prefer_official_holdout_features <- prefer_official_holdout_features %>%
-  select(-RINPERSOONS, -RINPERSOONSVERBINTENISP, -RINPERSOONVERBINTENISP, -RINPERSOONSHKW, -RINPERSOONHKW, -SOORTOBJECTNUMMER, -RINOBJECTNUMMER, -HUISHOUDNR)
-# Note: the sampling file will tell the code which RINPERSOON belong to train vs. eval vs. holdout
-# TODO: Improve naming convention throughout code, to indicate that this includes holdout data now
-prefer_official_train <- rbind.data.frame(prefer_official_train, prefer_official_holdout_features)
-# Overwrite official train rinpersoon to be train + holdout RINPERSOON
-official_train_rinpersoon <- prefer_official_train$RINPERSOON
-
-# Append the PreFer official holdout rows onto the training set (for the outcome df)
-prefer_official_holdout_labels <- fread(data_files$prefer_official_holdout_labels, 
-                                        colClasses = c(RINPERSOON = "character"))
-prefer_official_holdout_labels <- prefer_official_holdout_labels %>%
-  rename(outcome = children_post2021)
-outcome_data <- rbind.data.frame(outcome_data, prefer_official_holdout_labels)
 
 # Save PERSOONTAB, filtered to just the PreFer official train set with non-missing outcomes
 gbapersoontab_full <- fread(data_files$gbapersoontab, colClasses = c(RINPERSOON = "character")) %>%

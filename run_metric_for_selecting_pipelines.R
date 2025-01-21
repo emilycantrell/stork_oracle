@@ -34,8 +34,6 @@ run_selection_metric_outputs <- map(metrics_for_selecting_pipelines, run_metric_
   list_rbind() %>%
   unnest(run_selection_metric_output)
 
-plan(multisession, workers = workers_metric_for_selecting_pipelines)
-
 run_winning_grid_rows_outputs <- select(run_selection_metric_outputs, feature_set, sampling_file, training_set, model, grid_row, selection_set) %>%
   future_pmap(~run_grid_row(..., metrics_for_all_pipelines = metrics_for_all_pipelines, metrics_for_winning_pipelines = metrics_for_winning_pipelines, n_bootstrap = n_bootstrap, threshold_increment = threshold_increment), .options = furrr_options(seed = TRUE)) %>%
   list_rbind() %>%
@@ -63,4 +61,4 @@ if(save_only_winning_hyperparameter_draw_results) {
     select(-new_row)
 } 
 
-fwrite(results, results_path)
+fwrite(results, "results.csv")

@@ -7,8 +7,8 @@ library(tidyverse)
 # Parallelization settings
 seed_job <- 0
 seed_worker <- 0
-workers_grid_row <- haha
-workers_metric_for_selecting_pipelines <- haha
+workers_grid_row <- 3
+workers_metric_for_selecting_pipelines <- 3
 #n_thread_within_worker <- -1
 
 # Feature choices
@@ -17,12 +17,13 @@ feature_set_settings <- list(
   decile10 = c("decile10"),
   decile10_9 = c("decile10", "decile9"),
   decile10_8 = c("decile10", "decile9", "decile8"),
-  decile10_7 = c("decile10", "decile9", "decile8", "decile7") # ,
-  # decile10_6 = c("decile10", "decile9", "decile8", "decile7", "decile6"),
-  # decile10_5 = c("decile10", "decile9", "decile8", "decile7", "decile6", "decile5"),
-  # decile10_4 = c("decile10", "decile9", "decile8", "decile7", "decile6", "decile5", "decile4"),
-  # decile10_3 = c("decile10", "decile9", "decile8", "decile7", "decile6", "decile5", "decile4", "decile3"),
-  # decile10_2 = c("decile10", "decile9", "decile8", "decile7", "decile6", "decile5", "decile4", "decile3", "decile2")
+  decile10_7 = c("decile10", "decile9", "decile8", "decile7"),
+  decile10_6 = c("decile10", "decile9", "decile8", "decile7", "decile6"),
+  decile10_5 = c("decile10", "decile9", "decile8", "decile7", "decile6", "decile5"),
+  decile10_4 = c("decile10", "decile9", "decile8", "decile7", "decile6", "decile5", "decile4"),
+  decile10_3 = c("decile10", "decile9", "decile8", "decile7", "decile6", "decile5", "decile4", "decile3"),
+  decile10_2 = c("decile10", "decile9", "decile8", "decile7", "decile6", "decile5", "decile4", "decile3", "decile2"),
+  decile10_1 = c("decile10", "decile9", "decile8", "decile7", "decile6", "decile5", "decile4", "decile3", "decile2", "decile1")
 )
 
 # Train-test splits 
@@ -73,17 +74,17 @@ model_settings <- list(
   # tibble(alpha = 1, lambda = 0)),
   # list)),
   # steps = c(1, 2, 3, 4, 5))
-  )
+)
 n_grid_row <- 1 # how many hyperparameter combinations to sample from expanded
 # grid?
 
 # Performance metrics
 metrics_for_all_pipelines <- c("LogLoss", "MSE", "In_Sample_R2", "R2_Holdout", "AUC") # Deciles_for_Calibration
 metrics_for_selecting_pipelines <- c("LogLoss")
-metrics_for_winning_pipelines <- c("F1_Score", "Precision", "Recall", "Accuracy") # F1_Score
+metrics_for_winning_pipelines <- c("F1_Score", "Accuracy") # F1_Score
 threshold_increment <- .01
 n_bootstrap <- 2000 # A very small number because we are not really interested
 # in confidence intervals for this submission
 
 save_only_winning_hyperparameter_draw_results <- FALSE
-results_path <- "results_feature_importance_2024-12-17.csv"
+results_path <- "results_feature_importance_2025-01-21.csv"

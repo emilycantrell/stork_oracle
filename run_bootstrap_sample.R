@@ -18,6 +18,4 @@ run_bootstrap_sample <- function(bootstrap_sample) {
   
   run_bootstrap_sample_output <- map(metrics, ~run_metric(.x, bootstrapped_evaluation_set_predictions, bootstrapped_evaluation_set_outcomes, check_threshold_reference_if_applicable))
   tibble(bootstrap_sample = bootstrap_sample, run_bootstrap_sample_output = run_bootstrap_sample_output)
-  
-  
 }

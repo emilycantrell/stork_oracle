@@ -56,7 +56,7 @@ metadata_prefer_official_train <- left_join(variable_type_metadata_prefer_offici
          feature_set_sex_and_birthyear = ifelse(variable_name %in% c("GBAGESLACHT", "GBAGEBOORTEJAAR"), 1, 0))
 
 # Notes: 
-# GBAGEBOORTEJAAR has a very small number of values that are not plausible (e.g., 4 people born 1885)
+# GBAGEBOORTEJAAR has a very small number of values that are not plausible 
 
 #### PERSOONTAB ####
 # Identify variables by shared strings in the name
@@ -146,6 +146,12 @@ metadata[is.na(metadata)] <- 0
 features_about_number_of_children <- c("children_pre2021", "AANTALKINDHH")
 metadata <- metadata %>% 
   mutate(feature_set_number_of_children = ifelse(variable_name %in% features_about_number_of_children, 1, 0))
+
+#### Huishoudensbus without leakage ####
+metadata <- metadata %>% 
+  mutate(feature_set_GBAHUISHOUDENSBUS_without_leakage = case_when(
+    feature_set_GBAHUISHOUDENSBUS == 1 & variable_name != "DATUMEINDEHH" ~ 1, 
+    TRUE ~ 0))
 
 #### Expanding circles: age & sex ####
 # "Live-in" partner means cohabiting partner, whether married, registered, or unregistered

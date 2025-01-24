@@ -7,8 +7,8 @@ library(tidyverse)
 # Parallelization settings
 seed_job <- 0
 seed_worker <- 0
-workers_grid_row <- 14
-workers_metric_for_selecting_pipelines <- 20
+workers_grid_row <- 3
+workers_metric_for_selecting_pipelines <- 3
 #n_thread_within_worker <- -1
 
 # Feature choices
@@ -117,7 +117,8 @@ data_splits <- bind_rows(
                       "train_sample_n_3000000",
                       "training_set"),
     selection_sets = c("evaluation_selection_50_percent_split"), # Evaluation sets we use to select the best pipelines
-    test_sets = c("evaluation_test_50_percent_split") # Evaluation sets we use for holdout evaluations.
+    test_sets = c("evaluation_test_50_percent_split",
+                  "official_holdout_set") # Evaluation sets we use for holdout evaluations.
   )
 )
 
@@ -161,10 +162,10 @@ n_grid_row <- 1 # how many hyperparameter combinations to sample from expanded
 # Performance metrics
 metrics_for_all_pipelines <- c("LogLoss", "MSE", "In_Sample_R2", "R2_Holdout", "AUC") # Deciles_for_Calibration
 metrics_for_selecting_pipelines <- c("LogLoss")
-metrics_for_winning_pipelines <- c("F1_Score", "Precision", "Recall", "Accuracy") # F1_Score
+metrics_for_winning_pipelines <- c("F1_Score", "Accuracy") # F1_Score
 threshold_increment <- .01
 n_bootstrap <- 2000 # A very small number because we are not really interested
 # in confidence intervals for this submission
 
 save_only_winning_hyperparameter_draw_results <- FALSE
-results_path <- "results_sample_size_2024-12-18.csv"
+results_path <- "results_sample_size_2025-01-24.csv"

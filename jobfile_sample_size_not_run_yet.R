@@ -98,7 +98,8 @@ data_splits <- bind_rows(
     training_sets = c(
                       "train_sample_n_1000"),
     selection_sets = c("evaluation_selection_50_percent_split"), # Evaluation sets we use to select the best pipelines
-    test_sets = c("evaluation_test_50_percent_split") # Evaluation sets we use for holdout evaluations.
+    test_sets = c("evaluation_test_50_percent_split",
+                  "official_holdout_set") # Evaluation sets we use for holdout evaluations.
   )
 )
 

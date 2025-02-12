@@ -95,10 +95,13 @@ feature_set_settings <- list(
 sampling_files <- c("pmt_train_and_evaluation_samples_seed_1_241016_with_holdout.csv")
 data_splits <- bind_rows(
   expand_grid(
-    training_sets = c(
-                      "train_sample_n_1000"),
+    training_sets = c("train_sample_n_100",
+                      "train_sample_n_500",
+                      "train_sample_n_1000",
+                      "train_sample_n_10000",
+                      "train_sample_n_100000"),
     selection_sets = c("evaluation_selection_50_percent_split"), # Evaluation sets we use to select the best pipelines
-    test_sets = c("evaluation_test_50_percent_split") # Evaluation sets we use for holdout evaluations.
+    test_sets = c("official_holdout_set") # Evaluation sets we use for holdout evaluations.
   )
 )
 
@@ -148,4 +151,4 @@ n_bootstrap <- 2000 # A very small number because we are not really interested
 # in confidence intervals for this submission
 
 save_only_winning_hyperparameter_draw_results <- FALSE
-results_path <- "results_sample_size_2025-02-03.csv"
+results_path <- "results_sample_size_2025-02-12.csv"
